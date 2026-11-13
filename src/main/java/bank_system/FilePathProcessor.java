@@ -1,25 +1,23 @@
 package bank_system;
 
-import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
- * Xử lý đường dẫn file — đã refactor dùng File.separator.
+ * Xử lý đường dẫn file — dùng java.nio.file.Path API.
  */
 public class FilePathProcessor {
 
     /**
-     * Ghép các đoạn đường dẫn bằng File.separator (tương thích mọi OS).
+     * Ghép các đoạn đường dẫn bằng Path API (tương thích mọi OS).
      *
      * @param segments các đoạn đường dẫn
      * @return đường dẫn đã ghép
      */
     public String joinPath(String... segments) {
-        StringBuilder path = new StringBuilder();
-        for (int i = 0; i < segments.length; i++) {
-            path.append(segments[i]);
-            if (i < segments.length - 1) {
-                path.append(File.separator); 
-            }
+        Path path = Paths.get(segments[0]);
+        for (int i = 1; i < segments.length; i++) {
+            path = path.resolve(segments[i]);
         }
         return path.toString();
     }
@@ -34,7 +32,11 @@ public class FilePathProcessor {
         if (path == null || path.isEmpty()) {
             return false;
         }
-        // Dùng File.separator hoặc ký tự separator chung
-        return path.contains(File.separator) || path.contains("/") || path.contains("\\");
+        try {
+            Path parsed = Paths.get(path);
+            return parsed.getFileName() != null;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }
