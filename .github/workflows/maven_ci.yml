@@ -1,4 +1,4 @@
-name: Maven CI
+name: Maven CI - Multi-OS Matrix
 
 # Trigger workflow khi có push hoặc pull request lên branch chính
 on:
@@ -13,8 +13,14 @@ permissions:
 
 jobs:
   build:
-    name: Build & Test
-    runs-on: ubuntu-latest
+    name: Build & Test (${{ matrix.os }})
+
+    # Matrix Strategy: chạy trên 3 hệ điều hành
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    runs-on: ${{ matrix.os }}
 
     steps:
       # Bước 1: Checkout source code
@@ -33,9 +39,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          key: ${{ matrix.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
-            ${{ runner.os }}-maven-
+            ${{ matrix.os }}-maven-
 
       # Bước 4: Build project (compile + test + package)
       - name: Build with Maven
@@ -45,16 +51,6 @@ jobs:
       - name: Upload JAR artifact
         uses: actions/upload-artifact@v4
         with:
-          name: bank-system-jar
+          name: bank-system-jar-${{ matrix.os }}
           path: target/maven-lab-01-1.0-SNAPSHOT.jar
           retention-days: 7
-
-      # Bước 6: Display test summary
-      - name: Test Summary
-        if: always()
-        run: |
-          echo "=== CI Build Complete ==="
-          echo "Workflow: ${{ github.workflow }}"
-          echo "Event: ${{ github.event_name }}"
-          echo "Branch: ${{ github.ref }}"
-          echo "Status: Success"
