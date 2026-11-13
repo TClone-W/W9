@@ -1,11 +1,13 @@
 package bank_system;
 
+import java.io.File;
+import java.nio.file.Paths;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Test cho FilePathProcessor — demo vấn đề path separator.
+ * Test cho FilePathProcessor — tương thích đa nền tảng (không gắn separator cụ thể).
  */
 class FilePathProcessorTest {
 
@@ -14,12 +16,39 @@ class FilePathProcessorTest {
     @Test
     void testJoinPath() {
         String result = processor.joinPath("data", "customers", "list.txt");
-        assertEquals("data/customers/list.txt", result);
+        // ✅ Không hardcode "/" — dùng File.separator trong expect
+        String expected = "data" + File.separator + "customers" + File.separator + "list.txt";
+        assertEquals(expected, result);
+    }
+
+    @Test
+    void testJoinPathUsesSystemSeparator() {
+        String result = processor.joinPath("data", "customers");
+        // ✅ Xác minh dùng đúng separator của hệ thống
+        assertTrue(result.contains(File.separator));
+    }
+
+    @Test
+    void testJoinPathMatchesPathApi() {
+        // ✅ So sánh với kết quả của Path API để đảm bảo tương thích
+        String result = processor.joinPath("a", "b", "c");
+        String expected = Paths.get("a").resolve("b").resolve("c").toString();
+        assertEquals(expected, result);
     }
 
     @Test
     void testIsValidPath() {
-        assertTrue(processor.isValidPath("data/customers/list.txt"));
+        String path = processor.joinPath("data", "list.txt");
+        assertTrue(processor.isValidPath(path));
+    }
+
+    @Test
+    void testIsValidPathNoSeparator() {
+        assertFalse(processor.isValidPath("data"));
+    }
+
+    @Test
+    void testIsValidPathEmpty() {
         assertFalse(processor.isValidPath(""));
         assertFalse(processor.isValidPath(null));
     }
@@ -28,10 +57,5 @@ class FilePathProcessorTest {
     void testJoinPathSingleSegment() {
         String result = processor.joinPath("data");
         assertEquals("data", result);
-    }
-
-    @Test
-    void testIsValidPathNoSeparator() {
-        assertFalse(processor.isValidPath("data"));
     }
 }
