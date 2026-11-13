@@ -3,12 +3,12 @@ package bank_system;
 import java.io.File;
 
 /**
- * Xử lý đường dẫn file - demo vấn đề path separator.
+ * Xử lý đường dẫn file — đã refactor dùng File.separator.
  */
 public class FilePathProcessor {
 
     /**
-     * Ghép các đoạn đường dẫn bằng dấu gạch chéo "/" (cứng).
+     * Ghép các đoạn đường dẫn bằng File.separator (tương thích mọi OS).
      *
      * @param segments các đoạn đường dẫn
      * @return đường dẫn đã ghép
@@ -18,7 +18,7 @@ public class FilePathProcessor {
         for (int i = 0; i < segments.length; i++) {
             path.append(segments[i]);
             if (i < segments.length - 1) {
-                path.append("/"); // ❌ Dùng cứng "/" — sẽ fail trên Windows
+                path.append(File.separator); 
             }
         }
         return path.toString();
@@ -31,6 +31,10 @@ public class FilePathProcessor {
      * @return true nếu hợp lệ
      */
     public boolean isValidPath(String path) {
-        return path != null && !path.isEmpty() && path.contains("/");
+        if (path == null || path.isEmpty()) {
+            return false;
+        }
+        // Dùng File.separator hoặc ký tự separator chung
+        return path.contains(File.separator) || path.contains("/") || path.contains("\\");
     }
 }
